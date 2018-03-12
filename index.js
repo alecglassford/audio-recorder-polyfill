@@ -21,12 +21,24 @@ function createWorker (fn) {
  *
  * @class
  */
-function MediaRecorder (stream) {
-  /**
-   * The `MediaStream` passed into the constructor.
-   * @type {MediaStream}
-   */
-  this.stream = stream
+function MediaRecorder (stream, deferredStreamOptions) {
+  if (deferredStreamOptions) {
+    /**
+     * The `MediaStreamConstraints` (e.g. `{audio: true}`) used to create a new
+     * media stream on `recorder.start()`. This is a hack that differs from the
+     * `MediaRecorder` spec and allows recording in Mobile Safari by creating
+     * the `MediaStream` after the `AudioContext`. See 2017-10-03 post on
+     * https://forums.developer.apple.com/thread/86286
+     * @type {MediaStreamConstraints}
+     */
+    this.streamOptions = deferredStreamOptions
+  } else {
+    /**
+     * The `MediaStream` passed into the constructor.
+     * @type {MediaStream}
+     */
+    this.stream = stream
+  }
 
   /**
    * The current state of recording process.
@@ -74,28 +86,42 @@ MediaRecorder.prototype = {
       this.state = 'recording'
 
       this.context = new AudioContext()
-      var input = this.context.createMediaStreamSource(this.stream)
-      var processor = this.context.createScriptProcessor(2048, 1, 1)
 
-      var recorder = this
-      processor.onaudioprocess = function (e) {
-        if (recorder.state === 'recording') {
-          recorder.encoder.postMessage([
-            'encode', e.inputBuffer.getChannelData(0)
-          ])
+      var streamPromise;
+      if (this.stream) {
+        streamPromise = new Promise((resolve) => {
+          resolve(this.stream)
+        })
+      } else {
+        streamPromise = navigator.mediaDevices.getUserMedia(this.streamOptions)
+      }
+
+      streamPromise.then((stream) => {
+        var input = this.context.createMediaStreamSource(stream)
+        var processor = this.context.createScriptProcessor(2048, 1, 1)
+
+        var recorder = this
+        processor.onaudioprocess = function (e) {
+          if (recorder.state === 'recording') {
+            recorder.encoder.postMessage([
+              'encode', e.inputBuffer.getChannelData(0)
+            ])
+          }
         }
-      }
 
-      input.connect(processor)
-      processor.connect(this.context.destination)
+        input.connect(processor)
+        processor.connect(this.context.destination)
 
-      this.em.dispatchEvent(new Event('start'))
+        this.em.dispatchEvent(new Event('start'))
 
-      if (timeslice) {
-        this.slicing = setInterval(function () {
-          if (recorder.state === 'recording') recorder.requestData()
-        }, timeslice)
-      }
+        if (timeslice) {
+          this.slicing = setInterval(function () {
+            if (recorder.state === 'recording') recorder.requestData()
+          }, timeslice)
+        }
+      }).catch((err) => {
+        console.error(err)
+      })
     }
   },
 
