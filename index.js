@@ -81,47 +81,39 @@ MediaRecorder.prototype = {
    *   recorder.start()
    * })
    */
-  start: function start (timeslice) {
+  start: async function start (timeslice) {
     if (this.state === 'inactive') {
       this.state = 'recording'
 
       this.context = new AudioContext()
-
-      var streamPromise;
+      var stream
       if (this.stream) {
-        streamPromise = new Promise((resolve) => {
-          resolve(this.stream)
-        })
+        stream = this.stream
       } else {
-        streamPromise = navigator.mediaDevices.getUserMedia(this.streamOptions)
+        stream = await navigator.mediaDevices.getUserMedia(this.streamOptions)
+      }
+      var input = this.context.createMediaStreamSource(stream)
+      var processor = this.context.createScriptProcessor(2048, 1, 1)
+
+      var recorder = this
+      processor.onaudioprocess = function (e) {
+        if (recorder.state === 'recording') {
+          recorder.encoder.postMessage([
+            'encode', e.inputBuffer.getChannelData(0)
+          ])
+        }
       }
 
-      streamPromise.then((stream) => {
-        var input = this.context.createMediaStreamSource(stream)
-        var processor = this.context.createScriptProcessor(2048, 1, 1)
+      input.connect(processor)
+      processor.connect(this.context.destination)
 
-        var recorder = this
-        processor.onaudioprocess = function (e) {
-          if (recorder.state === 'recording') {
-            recorder.encoder.postMessage([
-              'encode', e.inputBuffer.getChannelData(0)
-            ])
-          }
-        }
+      this.em.dispatchEvent(new Event('start'))
 
-        input.connect(processor)
-        processor.connect(this.context.destination)
-
-        this.em.dispatchEvent(new Event('start'))
-
-        if (timeslice) {
-          this.slicing = setInterval(function () {
-            if (recorder.state === 'recording') recorder.requestData()
-          }, timeslice)
-        }
-      }).catch((err) => {
-        console.error(err)
-      })
+      if (timeslice) {
+        this.slicing = setInterval(function () {
+          if (recorder.state === 'recording') recorder.requestData()
+        }, timeslice)
+      }
     }
   },
 
