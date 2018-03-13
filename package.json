@@ -14,9 +14,16 @@
     "web audio api",
     "recorder"
   ],
-  "author": "Andrey Sitnik <andrey@sitnik.ru>",
+  "contributors": [
+    "Andrey Sitnik <andrey@sitnik.ru>",
+    {
+      "name": "Alec Glassford",
+      "email": "glassford@cs.stanford.edu",
+      "url": "https://alecglassford.com"
+    }
+  ],
   "license": "MIT",
-  "repository": "ai/audio-recorder-polyfill",
+  "repository": "alecglassford/audio-recorder-polyfill",
   "devDependencies": {
     "bytes": "^3.0.0",
     "docdash": "^0.4.0",

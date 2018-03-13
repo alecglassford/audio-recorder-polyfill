@@ -13,6 +13,7 @@ function createWorker (fn) {
  * Audio Recorder with MediaRecorder API.
  *
  * @param {MediaStream} stream The audio stream to record.
+ * @param {MediaStreamConstraints} deferredStreamOptions In lieu of stream.
  *
  * @example
  * navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
@@ -82,47 +83,49 @@ MediaRecorder.prototype = {
    * })
    */
   start: function start (timeslice) {
+    var recorder = this
+    function startMain () {
+      var input = recorder.context.createMediaStreamSource(recorder.stream)
+      var processor = recorder.context.createScriptProcessor(2048, 1, 1)
+
+      processor.onaudioprocess = function (e) {
+        if (recorder.state === 'recording') {
+          recorder.encoder.postMessage([
+            'encode', e.inputBuffer.getChannelData(0)
+          ])
+        }
+      }
+
+      input.connect(processor)
+      processor.connect(recorder.context.destination)
+
+      recorder.em.dispatchEvent(new Event('start'))
+
+      if (timeslice) {
+        recorder.slicing = setInterval(function () {
+          if (recorder.state === 'recording') recorder.requestData()
+        }, timeslice)
+      }
+    }
     if (this.state === 'inactive') {
       this.state = 'recording'
 
       this.context = new AudioContext()
+      this.context.resume() // necessary for Mobile Safari??
 
-      var streamPromise;
-      if (this.stream) {
-        streamPromise = new Promise((resolve) => {
-          resolve(this.stream)
-        })
+      if (!this.streamOptions) {
+        startMain()
       } else {
-        streamPromise = navigator.mediaDevices.getUserMedia(this.streamOptions)
+        return navigator.mediaDevices.getUserMedia(this.streamOptions)
+          .then(function gotStream (stream) {
+            recorder.stream = stream
+            startMain()
+          }).catch(function failedToGetStream (err) {
+            console.error(err)
+          })
       }
-
-      streamPromise.then((stream) => {
-        var input = this.context.createMediaStreamSource(stream)
-        var processor = this.context.createScriptProcessor(2048, 1, 1)
-
-        var recorder = this
-        processor.onaudioprocess = function (e) {
-          if (recorder.state === 'recording') {
-            recorder.encoder.postMessage([
-              'encode', e.inputBuffer.getChannelData(0)
-            ])
-          }
-        }
-
-        input.connect(processor)
-        processor.connect(this.context.destination)
-
-        this.em.dispatchEvent(new Event('start'))
-
-        if (timeslice) {
-          this.slicing = setInterval(function () {
-            if (recorder.state === 'recording') recorder.requestData()
-          }, timeslice)
-        }
-      }).catch((err) => {
-        console.error(err)
-      })
     }
+    return undefined
   },
 
   /**
