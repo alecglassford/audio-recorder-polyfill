@@ -1,5 +1,3 @@
-var bytes = require('bytes')
-
 var EVENTS = ['start', 'stop', 'pause', 'resume']
 var TYPES = ['audio/webm', 'audio/ogg', 'audio/wav']
 
@@ -89,8 +87,7 @@ function saveRecord (e) {
   li.appendChild(strong)
 
   var s = document.createElement('span')
-  s.innerText = e.data.type + ', ' +
-    bytes(e.data.size, { unitSeparator: ' ', decimalPlaces: 0 })
+  s.innerText = e.data.type + ', ';
   li.appendChild(s)
 
   var audio = document.createElement('audio')

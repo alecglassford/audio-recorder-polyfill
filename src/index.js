@@ -1,13 +1,6 @@
+import createWorker from './createWorker.js';
+import encoder from './wave-encoder.js';
 var AudioContext = window.AudioContext || window.webkitAudioContext
-
-function createWorker (fn) {
-  var js = fn
-    .toString()
-    .replace(/^function\s*\(\)\s*{/, '')
-    .replace(/}$/, '')
-  var blob = new Blob([js])
-  return new Worker(URL.createObjectURL(blob))
-}
 
 /**
  * Audio Recorder with MediaRecorder API.
@@ -21,7 +14,7 @@ function createWorker (fn) {
  *
  * @class
  */
-function MediaRecorder (stream) {
+function MediaRecorder(stream) {
   /**
    * The `MediaStream` passed into the constructor.
    * @type {MediaStream}
@@ -35,7 +28,7 @@ function MediaRecorder (stream) {
   this.state = 'inactive'
 
   this.em = document.createDocumentFragment()
-  this.encoder = createWorker(MediaRecorder.encoder)
+  this.encoder = createWorker(MediaRecorder.encoder);
 
   var recorder = this
   this.encoder.addEventListener('message', function (e) {
@@ -217,7 +210,7 @@ MediaRecorder.prototype = {
  *
  * @return {boolean} `true` on `audio/wav` MIME type.
  */
-MediaRecorder.isTypeSupported = function isTypeSupported (mimeType) {
+MediaRecorder.isTypeSupported = function isTypeSupported(mimeType) {
   return /audio\/wave?/.test(mimeType)
 }
 
@@ -230,8 +223,7 @@ MediaRecorder.isTypeSupported = function isTypeSupported (mimeType) {
  *   showWarning('Audio recording is not supported in this browser')
  * }
  */
-MediaRecorder.notSupported = !navigator.mediaDevices || !AudioContext
-
+MediaRecorder.notSupported = !navigator.mediaDevices || !AudioContext;
 /**
  * Converts RAW audio buffer to compressed audio files.
  * It will be loaded to Web Worker.
@@ -242,6 +234,6 @@ MediaRecorder.notSupported = !navigator.mediaDevices || !AudioContext
  * MediaRecorder.prototype.mimeType = 'audio/ogg'
  * MediaRecorder.encoder = oggEncoder
  */
-MediaRecorder.encoder = require('./wave-encoder')
+MediaRecorder.encoder = encoder;
 
-module.exports = MediaRecorder
+export default MediaRecorder

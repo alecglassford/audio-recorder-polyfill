@@ -1,4 +1,4 @@
-var waveEncoder = require('../wave-encoder')
+import waveEncoder from '../wave-encoder';
 
 var messages
 beforeEach(function () {

@@ -6,11 +6,14 @@
     <link rel="shortcut icon" href="./favicon.ico">
     <meta content="width=device-width" name="viewport">
     <meta name="theme-color" content="#00e5d2">
+    <script src="audio-polyfill.umd.js"></script>
     <script>
-      if (!window.MediaRecorder || /^\?polyfill/.test(location.search)) {
-        document.write(decodeURI('%3Cscript src="./polyfill.js">%3C/script>'))
+      if(!window.MediaRecorder || location.href.indexOf('polyfill') > -1) {
+        console.warn('load polyfill');
+        window.MediaRecorder = window.MediaRecorderPolyfill;
       }
     </script>
+    <script src="index.js"></script>
     <style>
       * {
         padding: 0;
