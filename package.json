@@ -28,19 +28,37 @@
     "@babel/core": "^7.2.2",
     "@babel/preset-env": "^7.3.1",
     "babel-jest": "^24.0.0",
+    "docdash": "^1.0.2",
+    "eslint": "^4.18.2",
+    "eslint-config-logux": "^21.0.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-es6-recommended": "^0.1.2",
+    "eslint-plugin-import": "^2.9.0",
+    "eslint-plugin-jest": "^21.13.0",
+    "eslint-plugin-node": "^6.0.1",
+    "eslint-plugin-promise": "^3.6.0",
+    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-standard": "^3.0.1",
     "http-server": "^0.11.1",
     "jest": "^24.0.0",
+    "jsdoc": "^3.5.5",
+    "lint-staged": "^7.0.0",
     "microbundle": "^0.9.0",
-    "pre-commit": "^1.2.2"
+    "pre-commit": "^1.2.2",
+    "size-limit": "^0.16.1",
+    "yaspeller-ci": "^1.0.0"
   },
   "scripts": {
     "build": "microbundle --target browser --name MediaRecorderPolyfill --entry src/index.js",
-    "build:watch": "microbundle --entry src/index.js --compress false --watch",
+    "build:watch": "microbundle --target browser --output demo/audio-polyfill --entry src/index.js --name MediaRecorderPolyfill --watch",
     "clean": "rimraf docs/ coverage/ test/demo/build/",
     "docs": "jsdoc --configure .jsdocrc *.js",
     "unit": "jest --coverage",
-    "test": "jest",
-    "start": "http-server demo"
+    "start": "http-server demo & yarn build:watch",
+    "lint-staged": "lint-staged",
+    "spell": "yarn docs && yaspeller-ci *.md docs/*.html",
+    "lint": "eslint *.js __tests__/{**/,}*.js",
+    "test": "yarn unit && yarn lint && size-limit && yarn spell && yarn build"
   },
   "jest": {
     "verbose": true,
@@ -61,8 +79,15 @@
   },
   "size-limit": [
     {
-      "path": "index.js",
+      "path": "src/index.js",
       "limit": "1018 B"
     }
+  ],
+  "lint-staged": {
+    "*.md": "yaspeller-ci",
+    "*.js": "eslint"
+  },
+  "pre-commit": [
+    "lint-staged"
   ]
 }

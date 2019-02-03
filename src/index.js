@@ -1,6 +1,7 @@
 import createWorker from './createWorker.js';
 import encoder from './wave-encoder.js';
-var AudioContext = window.AudioContext || window.webkitAudioContext
+
+var AudioContext = window.AudioContext || window.webkitAudioContext;
 
 /**
  * Audio Recorder with MediaRecorder API.

@@ -1,0 +1,8 @@
+{
+    "plugins": [
+        "es6-recommended"
+    ],
+    "parserOptions": {
+        "sourceType": "module"
+    }
+}

@@ -41,33 +41,57 @@ Install package:
 npm install --save audio-recorder-polyfill
 ```
 
-We recommend creating separated webpack bundle with polyfill. In this case,
-polyfill will be downloaded only by Edge and Safari. Good browsers will
-download less.
+If you bundle your app with "Webpack", "Roll up" or "Parcel", you can
+dynamic import the polyfill before you application loads
 
-```diff
-  entry: {
-    app: './src/app.js',
-+   polyfill: './src/polyfill.js'
+```javascript
+  if (!window.MediaRecorder || isIE || isSafari) {
+    import('audio-recorder-polyfill').then((MediaRecorderPolyfill) => {
+      window.MediaRecorder = MediaRecorderPolyfill.default || MediaRecorderPolyfill;
+    }).then(() => {
+      // start the app
+    });
   }
 ```
 
-Install polyfill as MediaRecorder in this new bundle `src/polyfill.js`:
+Or you can load the "UMD" bundle
 
-```js
-window.MediaRecorder = require('audio-recorder-polyfill')
+```javascript
+function loadScript(url, callback) {
+  var script = document.createElement("script")
+  script.type = "text/javascript";
+  if(script.readyState) {  // only required for IE <9
+    script.onreadystatechange = function() {
+      if ( script.readyState === "loaded" || script.readyState === "complete" ) {
+        script.onreadystatechange = null;
+        callback();
+      }
+    };
+  } else {  //Others
+    script.onload = function() {
+      callback();
+    };
+  }
+
+  script.src = url;
+  document.getElementsByTagName("head")[0].appendChild(script);
+}
+if (!window.MediaRecorder || isIE || isSafari) {
+  var umdURL = 'https://unpkg.com/audio-recorder-polyfill/dist/audio-polyfill.umd.js';
+  loadScript(umdURL, function() {
+    window.MediaRecorder = window.MediaRecorderPolyfill;
+    // startApplication()
+  });
+}
 ```
 
-Add this code to your HTML to load this new bundle only for browsers
-without MediaRecorder support:
+You can also use the ".mjs" module right in the browser that supports new script type=module tags
 
-```diff
-+   <script>
-+     if (!window.MediaRecorder) {
-+       document.write(decodeURI('%3Cscript src="/polyfill.js">%3C/script>'))
-+     }
-+   </script>
-    <script src="/app.js" defer></script>
+```javascript
+<script type='module'>
+  import MediaRecorderPolyfill from 'https://unpkg.com/audio-recorder-polyfill/dist/audio-polyfill.mjs'
+
+</script>
 ```
 
 ## Usage
@@ -159,7 +183,7 @@ But it still has small differences.
 ## Custom Encoder
 
 If you need audio format with better compression,
-you can change polyfill’s encoder:
+you can change polyfill encoder:
 
 ```diff
   window.MediaRecorder = require('audio-recorder-polyfill')

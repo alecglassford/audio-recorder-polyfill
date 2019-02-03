@@ -1,6 +1,6 @@
-import MediaRecorder from '../index.js';
+import MediaRecorder from '../index.js'
 
-const delay = (time) => new Promise((resolve) => { setTimeout(resolve, time) });
+const delay = function(time){return new Promise((resolve) => { setTimeout(resolve, time) })};
 
 function listen (recorder) {
   var events = []
