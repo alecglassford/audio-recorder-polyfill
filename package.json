@@ -1,5 +1,6 @@
 {
-  "name": "audio-recorder-polyfill",
+  "name": "@eatsjobs/audio-recorder-polyfill-es",
+  "private": false,
   "version": "0.1.1",
   "description": "MediaRecorder polyfill to record audio in Edge and Safari",
   "main": "dist/audio-polyfill.js",
