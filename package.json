@@ -51,7 +51,7 @@
   "scripts": {
     "build": "microbundle --target browser --name MediaRecorderPolyfill --entry src/index.js",
     "build:watch": "microbundle --target browser --output demo/audio-polyfill --entry src/index.js --name MediaRecorderPolyfill --watch",
-    "clean": "rimraf docs/ coverage/ test/demo/build/",
+    "clean": "rimraf docs/ coverage/ demo/audio-polyfill/",
     "docs": "jsdoc --configure .jsdocrc *.js",
     "unit": "jest --coverage",
     "start": "http-server demo & yarn build:watch",
