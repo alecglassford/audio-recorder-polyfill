@@ -1,7 +1,6 @@
-var delay = require('nanodelay')
+import MediaRecorder from '../index.js'
 
-require('./browser.js')
-var MediaRecorder = require('../')
+const delay = function(time){return new Promise((resolve) => { setTimeout(resolve, time) })};
 
 function listen (recorder) {
   var events = []

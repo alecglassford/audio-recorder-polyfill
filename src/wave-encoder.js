@@ -1,6 +1,6 @@
 // Copied from https://github.com/chris-rudmin/Recorderjs
 
-module.exports = function () {
+export default function waveEncoder() {
   var BYTES_PER_SAMPLE = 2
 
   var recorded = []
